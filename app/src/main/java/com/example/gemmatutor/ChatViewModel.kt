@@ -1,6 +1,7 @@
 package com.example.gemmatutor
 
 import android.content.Context
+import android.speech.tts.TextToSpeech
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -11,8 +12,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 class ChatViewModel(
+    context: Context,
     private val inferenceModel: InferenceModel
 ) : ViewModel() {
 
@@ -23,9 +26,23 @@ class ChatViewModel(
         _uiState.asStateFlow()
 
     private val _textInputEnabled: MutableStateFlow<Boolean> =
-        MutableStateFlow(true)
+        MutableStateFlow(false)
     val isTextInputEnabled: StateFlow<Boolean> =
         _textInputEnabled.asStateFlow()
+
+    private val textToSpeechOnInitListener = TextToSpeech.OnInitListener { status ->
+        if (status != TextToSpeech.ERROR) {
+            textToSpeech.setLanguage(Locale.ENGLISH)
+            setInputEnabled(true)
+        } else {
+            assert(false) {
+                "TTS initialization fail"
+            }
+        }
+    }
+
+    private val textToSpeech: TextToSpeech = TextToSpeech(context, textToSpeechOnInitListener)
+
 
     fun sendMessage(userMessage: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -37,13 +54,22 @@ class ChatViewModel(
                 inferenceModel.generateResponseAsync(fullPrompt)
                 inferenceModel.partialResults
                     .collectIndexed { index, (partialResult, done) ->
-                        currentMessageId?.let {
+                        currentMessageId?.let { id ->
                             if (index == 0) {
-                                _uiState.value.appendFirstMessage(it, partialResult)
+                                _uiState.value.appendFirstMessage(id, partialResult)
                             } else {
-                                _uiState.value.appendMessage(it, partialResult, done)
+                                _uiState.value.appendMessage(id, partialResult, done)
                             }
                             if (done) {
+                                val message = _uiState.value.getMessage(id)
+
+                                textToSpeech.speak(
+                                    message,
+                                    TextToSpeech.QUEUE_ADD,
+                                    null,
+                                    "utteranceId"
+                                )
+
                                 currentMessageId = null
                                 // Re-enable text input
                                 setInputEnabled(true)
@@ -61,11 +87,21 @@ class ChatViewModel(
         _textInputEnabled.value = isEnabled
     }
 
+    override fun onCleared() {
+        super.onCleared()
+
+        textToSpeech.shutdown()
+    }
+
     companion object {
         fun getFactory(context: Context) = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
                 val inferenceModel = InferenceModel.getInstance(context)
-                return ChatViewModel(inferenceModel) as T
+
+                return ChatViewModel(
+                    context = context,
+                    inferenceModel = inferenceModel
+                ) as T
             }
         }
     }

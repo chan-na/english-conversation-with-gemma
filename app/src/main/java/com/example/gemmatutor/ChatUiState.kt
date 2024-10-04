@@ -103,6 +103,11 @@ class GemmaUiState(
         return chatMessage.id
     }
 
+    fun getMessage(id: String): String {
+        val message = _messages.first { it.id == id }
+        return message.plainText
+    }
+
     fun appendFirstMessage(id: String, text: String) {
         appendMessage(id, "$START_TURN$MODEL_PREFIX\n$text", false)
     }
