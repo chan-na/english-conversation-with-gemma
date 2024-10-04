@@ -4,16 +4,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.Card
@@ -23,7 +20,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -45,23 +40,21 @@ internal fun ChatRoute(
     )
 ) {
     val uiState by chatViewModel.uiState.collectAsStateWithLifecycle()
-    val textInputEnabled by chatViewModel.isTextInputEnabled.collectAsStateWithLifecycle()
+    val isSpeechRecognitionEnabled by chatViewModel.isSpeechRecognitionEnabled.collectAsStateWithLifecycle()
+
     ChatScreen(
         uiState,
-        textInputEnabled
-    ) { message ->
-        chatViewModel.sendMessage(message)
-    }
+        isSpeechRecognitionEnabled,
+        chatViewModel::startListening
+    )
 }
 
 @Composable
 fun ChatScreen(
     uiState: UiState,
-    textInputEnabled: Boolean = true,
-    onSendMessage: (String) -> Unit
+    isSpeechRecognitionEnabled: Boolean = true,
+    startListening: () -> Unit
 ) {
-    var userMessage by rememberSaveable { mutableStateOf("") }
-
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -86,41 +79,20 @@ fun ChatScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            Column { }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            TextField(
-                value = userMessage,
-                onValueChange = { userMessage = it },
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Sentences,
-                ),
-                label = {
-                    Text(stringResource(R.string.chat_label))
-                },
-                modifier = Modifier
-                    .weight(0.85f),
-                enabled = textInputEnabled
-            )
-
             IconButton(
                 onClick = {
-                    if (userMessage.isNotBlank()) {
-                        onSendMessage(userMessage)
-                        userMessage = ""
-                    }
+                    startListening()
                 },
                 modifier = Modifier
                     .padding(start = 16.dp)
                     .align(Alignment.CenterVertically)
                     .fillMaxWidth()
                     .weight(0.15f),
-                enabled = textInputEnabled
+                enabled = isSpeechRecognitionEnabled
             ) {
                 Icon(
                     Icons.AutoMirrored.Default.Send,
-                    contentDescription = stringResource(R.string.action_send),
+                    contentDescription = stringResource(R.string.action_start_listening),
                     modifier = Modifier
                 )
             }

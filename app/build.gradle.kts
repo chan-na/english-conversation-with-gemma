@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
+    implementation(libs.google.accompanist.permissions)
     implementation(libs.google.mediapipe.tasks.genai)
 
     testImplementation(libs.junit)

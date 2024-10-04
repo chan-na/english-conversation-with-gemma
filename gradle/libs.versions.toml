@@ -11,6 +11,7 @@ composeBom = "2024.04.01"
 anroidxNavigation = "2.7.7"
 androidxLifecycle = "2.7.0"
 mediapipeTasksGenai = "0.10.16"
+accompanist = "0.36.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -31,6 +32,7 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "androidxLifecycle" }
 androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
 google-mediapipe-tasks-genai = { group = "com.google.mediapipe", name = "tasks-genai", version.ref = "mediapipeTasksGenai" }
+google-accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
