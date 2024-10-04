@@ -152,7 +152,7 @@ class ChatViewModel(
             _uiState.value.addMessage(userMessage, USER_PREFIX)
             var currentMessageId: String? = _uiState.value.createLoadingMessage()
             try {
-                val fullPrompt = _uiState.value.fullPrompt
+                val fullPrompt = _uiState.value.fullPrompt + "(Please answer in about three sentences or less and don't use emoji.)"
                 inferenceModel.generateResponseAsync(fullPrompt)
                 inferenceModel.partialResults
                     .collectIndexed { index, (partialResult, done) ->
